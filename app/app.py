@@ -1,8 +1,26 @@
+from flask import Flask 
+from flask_sqlalchemy import SQLAlchemy 
 from flask import render_template, request, redirect, url_for 
-from app import app 
-from app.models import Score 
-from app import db
+import os 
 
+file_path = os.path.abspath(os.getcwd())+"/scores.db"
+
+app = Flask(__name__) 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ file_path 
+db = SQLAlchemy(app)
+
+class Score(db.Model): 
+	__tablename__ = 'scores'
+	id = db.Column(db.Integer, primary_key=True) 
+	score = db.Column(db.Integer)
+	username = db.Column(db.String(50))
+
+	def __init__(self, username, scores):
+		self.username = username
+		self.score = scores
+
+	def __repr__(self): 
+		return f"Leaderboard(score={self.score}, username={self.username})"
 
 @app.route('/') 
 def index(): 
@@ -25,3 +43,8 @@ def add_score():
         return redirect(url_for('leaderboard'))
     else:
         return "Method Not Allowed", 405
+  
+if __name__ == '__main__': 
+    db.create_all()
+    app.run(host='0.0.0.0', port=8080, debug=True)
+
